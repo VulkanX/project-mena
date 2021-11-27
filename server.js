@@ -1,6 +1,16 @@
+//*3rd Party Libraries
 const axios = require('axios');
 const cheerio = require('cheerio');
+const cron = require('node-cron');
 
+//*Const Variables
+var memexNewArrivalData = [];
+
+//*Web server Code
+
+
+
+//*Scrapping Functions
 const getNewArrivals = async () => {
     //Place Store new Arrival Data for processing
     const newArrivalData = [];
@@ -47,7 +57,35 @@ const getNewArrivals = async () => {
     }
 }
 
+const updateArrivalData = async (newData) => {
+    console.log('Updating New Arrivals...');
+
+    //loop through the new array
+    newData.forEach(item => {
+
+        //Check to see if partno exists
+        checkval = memexNewArrivalData.findIndex(part => part.partno === item.partno);
+
+        //if Check Interval
+        if(checkval === -1) { 
+           memexNewArrivalData.unshift(item) // Store new Item
+           if(memexNewArrivalData.length > 200) {
+               memexNewArrivalData.pop(); // if array is longer than 200 then remove an item to keep the array at 200
+           }
+           console.log(item.partno);
+        }
+    });
+}
+
 (async () => {
+
+    //pull Initial Data
     memexNewArrivalData = await getNewArrivals();
-    console.log(memexNewArrivalData);
+
+    //Setup Scheduling for every 5 minutes
+    cron.schedule('*/30 * * * *', async () => {
+        newData = await getNewArrivals();
+        updateArrivalData(newData);
+    });
+
 })();

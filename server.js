@@ -1,14 +1,35 @@
 //*3rd Party Libraries
+const path = require('path');
 const axios = require('axios');
 const cheerio = require('cheerio');
 const cron = require('node-cron');
+const koa = require('koa');
+const koaRouter = require('koa-router');
+const koaRender = require('koa-ejs');
 
 //*Const Variables
 var memexNewArrivalData = [];
+var lastCheckDate = Date().toString();
 
 //*Web server Code
+var server = new koa();
+var router = koaRouter();
 
+server.use(router.routes());
+koaRender(server, {
+    root: path.join(__dirname, "views"),
+    layout: "index",
+    viewExt: "html"
+});
 
+router.get('/', async (ctx) =>{ 
+    return ctx.render("index", {
+        data: memexNewArrivalData,
+        lastCheckDate
+    });
+});
+
+server.listen(3000);
 
 //*Scrapping Functions
 const getNewArrivals = async () => {
@@ -72,7 +93,6 @@ const updateArrivalData = async (newData) => {
            if(memexNewArrivalData.length > 200) {
                memexNewArrivalData.pop(); // if array is longer than 200 then remove an item to keep the array at 200
            }
-           console.log(item.partno);
         }
     });
 }
@@ -81,11 +101,12 @@ const updateArrivalData = async (newData) => {
 
     //pull Initial Data
     memexNewArrivalData = await getNewArrivals();
+    console.log(memexNewArrivalData);
 
     //Setup Scheduling for every 5 minutes
-    cron.schedule('*/30 * * * *', async () => {
-        newData = await getNewArrivals();
-        updateArrivalData(newData);
+    cron.schedule('*/5 * * * *', async () => {
+        updateArrivalData(await getNewArrivals());
+        lastCheckDate = Date().toString();
     });
-
+    
 })();

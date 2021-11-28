@@ -1,0 +1,20 @@
+<html>
+    <head>  
+        <title>New Arrivals</title>
+    </head>
+    <body>
+        <h1 class="display-4">MEMEX New Arrivals Notifier</h1>
+        <p class="lead">
+            Cache Size: <%= data.length %><br />
+            Last Checked: <%= lastCheckDate %>
+        </p>
+        <p>
+            <ul>Current New Arrivals
+            <% data.forEach( (item) => { %>
+                <li> <img src="<%= item.imgurl %>"" style="width: 50; height: 50"> <%= item.partno %> -- <B><%= item.price %></B> -- <%= item.description %> </li>
+                
+            <% }); %>
+            
+        </p>
+    </body>
+</html>
